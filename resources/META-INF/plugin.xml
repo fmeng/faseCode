@@ -1,0 +1,63 @@
+<idea-plugin version="2">
+  <id>me.fmeng.fastcode</id>
+  <name>Fast Code</name>
+  <version>1.0</version>
+  <vendor email="mail@fmeng.me" url="http://www.fmeng.me">fmeng.me</vendor>
+
+  <description><![CDATA[
+      Happy Life, Happy Code ~ <br>
+      <em>Fast Code</em>
+    ]]></description>
+
+  <change-notes><![CDATA[
+      <em>Init Version</em>
+    ]]>
+  </change-notes>
+  <idea-version since-build="145.0"/>
+  <extensions defaultExtensionNs="com.intellij">
+  </extensions>
+
+  <actions>
+    <group id="Fast Code" text="Fast Code" popup="true">
+
+      <!-- newInstance -->
+      <group id="newInstance" text="newInstance" popup="true">
+        <action id="newInstanceJDK7"  text="newInstanceJDK7"
+                description="newInstanceJDK7" class="me.fmeng.fastcode.action.jdk7.NewInstanceJDK7">
+          <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt N"/>
+        </action>
+        <action id="newInstanceJDK8"  text="newInstanceJDK8"
+                description="newInstanceJDK8" class="me.fmeng.fastcode.action.jdk8.NewInstanceJDK8">
+          <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt N"/>
+        </action>
+      </group>
+
+      <!-- copyValues -->
+      <group id="copyValues" text="copyValues" popup="true">
+         <action id="copyValuesJDK7"  text="copyValuesJDK7"
+                 description="copyValuesJDK7" class="me.fmeng.fastcode.action.jdk7.CopyValuesJDK7">
+           <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt C"/>
+         </action>
+         <action id="copyValuesJDK8"  text="copyValuesJDK8"
+                 description="copyValuesJDK8" class="me.fmeng.fastcode.action.jdk8.CopyValuesJDK8">
+           <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt C"/>
+         </action>
+      </group>
+
+      <!-- builder -->
+      <group id="builder" text="builder" popup="true">
+        <action id="builderJDK7"  text="builderJDK7"
+                description="builderJDK7" class="me.fmeng.fastcode.action.jdk7.BuilderJDK7">
+          <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt B"/>
+        </action>
+        <action id="builderJDK8"  text="builderJDK8"
+                description="builderJDK8" class="me.fmeng.fastcode.action.jdk8.BuilderJDK8">
+          <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt B"/>
+        </action>
+      </group>
+      <add-to-group group-id="CodeMenu" anchor="first"/>
+    </group>
+
+  </actions>
+
+</idea-plugin>

@@ -18,6 +18,7 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
     private LanguageEnum jdkLanguage;
     @Override
     public List<PsiElement> doCreatePsiElement(PsiMethod psiMethod) {
+        // 回调子类JDK版本
         jdkLanguage = selectCallBack();
         Map<String, PsiClass> params = PsiUtil.getParams(psiMethod);
         if (params == null || params.size() == 0){
@@ -25,17 +26,29 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
         }
         PsiClass thisPsiClass = PsiUtil.getPsiClass(psiMethod);
         List<PsiField> dstPsiFields = PsiUtil.getPsiFields(thisPsiClass);
+        if (dstPsiFields == null || dstPsiFields.isEmpty()){
+            return null;
+        }
         StringBuilder res = new StringBuilder();
-        // initCheck
+        // 是否匹配到属性，用Map标示（用于注释结果统计）
         Map<String, Boolean> dstFieldApplayCheck = new HashMap<>();
         for (PsiField dstFiled: dstPsiFields){
             dstFieldApplayCheck.put(dstFiled.getName(), Boolean.FALSE);
         }
-        // new res
-        res.append(CodeUtil.getNewInstance(thisPsiClass.getName()));
+        // 参数非空校验
+        for(String iParamName : params.keySet()){
+            PsiClass iFromPsiClass = params.get(iParamName);
+            res.append(CodeUtil.checkParamCodeJava7(iFromPsiClass,iParamName));
+        }
+        // Model res = new Model();
+        res.append(CodeUtil.getNewInstance(thisPsiClass.getQualifiedName()));
+        // 属性Copy
         for (String iParamName : params.keySet()){
             PsiClass iFromPsiClass = params.get(iParamName);
             List<PsiField> psiFields = PsiUtil.getPsiFields(iFromPsiClass);
+            if (psiFields == null || psiFields.isEmpty()){
+                continue;
+            }
             for (PsiField ipsiField : psiFields){
                 String fileName = ipsiField.getName();
                 String thisSetName = PsiUtil.getSetterName(fileName, thisPsiClass);
@@ -57,7 +70,8 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
         // 注释语句
         res.append(CodeUtil.getUnMathedFiledComment(dstFieldApplayCheck));
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
-        String newInstanceMethodString = CodeUtil.wraprMethod(psiMethod,res.toString());
+        // 返回结果
+        String newInstanceMethodString = CodeUtil.wraprMethod(psiMethod,res.append(CodeUtil.getReturnRes()).toString());
         PsiMethod newInstanceMethod = elementFactory.createMethodFromText(newInstanceMethodString, thisPsiClass);
         List<PsiElement> resPsi = new ArrayList<>();
         resPsi.add(newInstanceMethod);

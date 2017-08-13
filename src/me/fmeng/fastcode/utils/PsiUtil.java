@@ -14,10 +14,10 @@ import com.intellij.ui.CollectionListModel;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.Map;
 
 /**
  * Created by fmeng on 06/08/2017.
@@ -129,15 +129,18 @@ public class PsiUtil {
 
     /**
      * 返回有序的map
+     *
+     * @param psiMethod
+     * @return <参数名, 参数类型的Class>
      */
-    public static TreeMap<String, PsiClass> getParams(PsiMethod psiMethod) {
+    public static Map<String, PsiClass> getParams(PsiMethod psiMethod) {
         if (psiMethod == null
                 || psiMethod.getParameterList() == null
                 || psiMethod.getParameterList().getParameters() == null
                 || psiMethod.getParameterList().getParameters().length < 1) {
             return null;
         }
-        TreeMap<String, PsiClass> params = new TreeMap<>();
+        Map<String, PsiClass> params = Maps.newLinkedHashMap();
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
         for (PsiParameter p : parameters) {
             if (p != null) {
@@ -157,10 +160,12 @@ public class PsiUtil {
     }
 
     /**
+     * 详见 me.fmeng.fastcode.Conf#IMPORT_CHECK_MAP
+     *
      * @param psiClass
      * @param candidateMap
      */
-    public static void ensureImport(PsiClass psiClass, SortedMap<String, String> candidateMap) {
+    public static void ensureImport(PsiClass psiClass, Map<String, String> candidateMap) {
         if (psiClass == null) {
             return;
         }
@@ -176,7 +181,7 @@ public class PsiUtil {
         // 1. 去重复
         // candidateMap--> <"com.google...PreConditions", "PreConditions">
         // reverseMap  --> <"PreConditions", "com.google...PreConditions">
-        SortedMap<String, String> reverseMap = Maps.newTreeMap();
+        Map<String, String> reverseMap = Maps.newLinkedHashMap();
         candidateMap.forEach((kClass, vName) -> {
             PsiClass findClass = facade.findClass(kClass, GlobalSearchScope.allScope(project));
             if (findClass != null) {
@@ -193,6 +198,44 @@ public class PsiUtil {
                 }
             }
         }
+    }
+
+    /**
+     * 从参数列表中找到src的名称和对应的PsiClass
+     *
+     * @param psiMethod
+     * @return <参数名, 参数类型的Class>
+     */
+    public static Map<String, PsiClass> getSrcParams(PsiMethod psiMethod) {
+        Map<String, PsiClass> params = getParams(psiMethod);
+        if (params == null || params.isEmpty() || params.size() < 2) {
+            return null;
+        }
+        Map<String, PsiClass> res = Maps.newLinkedHashMap();
+        String[] paramNames = params.keySet().toArray(new String[params.size()]);
+        // 默认除了第一个为dst
+        for (int i = 0; i < paramNames.length; i++) {
+            if (i > 0) {
+                res.put(paramNames[i], params.get(paramNames[i]));
+            }
+        }
+        return res;
+    }
+
+    /**
+     * 从参数列表中找到dest的名称和对应的PsiClass
+     *
+     * @param psiMethod
+     * @return <参数名, 参数类型的Class>
+     */
+    public static Map.Entry<String, PsiClass> getDstParam(PsiMethod psiMethod) {
+        Map<String, PsiClass> params = getParams(psiMethod);
+        if (params == null || params.isEmpty() || params.size() < 2) {
+            return null;
+        }
+        String[] paramNames = params.keySet().toArray(new String[params.size()]);
+        // 默认第一个为dst
+        return new AbstractMap.SimpleEntry(paramNames[0], params.get(paramNames[0]));
     }
 
 

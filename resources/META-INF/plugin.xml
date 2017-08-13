@@ -32,14 +32,14 @@
         </action>
       </group>
 
-      <!-- copyValues -->
-      <group id="copyValues" text="copyValues" popup="true">
-         <action id="copyValuesJDK7"  text="copyValuesJDK7"
-                 description="copyValuesJDK7" class="me.fmeng.fastcode.action.jdk7.CopyValuesJDK7">
+      <!-- copyProps -->
+      <group id="copyProps" text="copyProps" popup="true">
+         <action id="copyPropsJDK7"  text="copyPropsJDK7"
+                 description="copyPropsJDK7" class="me.fmeng.fastcode.action.jdk7.CopyPropsJDK7">
            <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt C"/>
          </action>
-         <action id="copyValuesJDK8"  text="copyValuesJDK8"
-                 description="copyValuesJDK8" class="me.fmeng.fastcode.action.jdk8.CopyValuesJDK8">
+         <action id="copyPropsJDK8"  text="copyPropsJDK8"
+                 description="copyPropsJDK8" class="me.fmeng.fastcode.action.jdk8.CopyPropsJDK8">
            <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt C"/>
          </action>
       </group>

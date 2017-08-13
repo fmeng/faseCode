@@ -5,6 +5,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import me.fmeng.fastcode.action.LanguageSelection;
+import org.apache.commons.lang.IllegalClassException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
@@ -18,33 +19,38 @@ import java.util.Map;
 public class CodeUtil {
 
     /***********************常量***********************/
-    private static final String BUILD_METHOD_STRING
+    public static final String BUILD_METHOD_STRING
             = "public static Builder builder() {\n"
             + "return new Builder();\n"
             + "}\n";
-    private static final String returnRes = "return res;\n";
+    public static final String RETURN_RES = "return res;\n";
+    public static final String COMMENT_SLIPT = "        //";
 
     private CodeUtil() {
     }
 
-    public static String getReturnRes() {
-        return returnRes;
-    }
-
     /***********************工具方法***********************/
     public static String wraprMethod(PsiMethod psiMethod, String innerCode) {
-        String name = psiMethod.getName();
-        String params = getParam(psiMethod);
-        String returnType = getReturnType(psiMethod);
-        StringBuilder res = new StringBuilder();
-        res.append("public static ").append(returnType).append(" ").append(name)
-                .append("(").append(params).append("){")
-                .append(innerCode).append("}\n");
-        return res.toString();
+        return wraprMethod(psiMethod, null, innerCode);
     }
 
-    public static String getStaticBuildMethod() {
-        return BUILD_METHOD_STRING;
+    public static String getComments(String str) {
+        return new StringBuilder().append("        //").append(str).append("\n").toString();
+    }
+
+    public static String wraprMethod(PsiMethod psiMethod, String methodName, String innerCode) {
+        String params = getParamStr(psiMethod);
+        String returnType = getReturnType(psiMethod);
+        StringBuilder res = new StringBuilder();
+        res.append("public static ").append(returnType).append("  ");
+        if (methodName == null) {
+            res.append(psiMethod.getName());
+        } else {
+            res.append(methodName);
+        }
+        res.append("(").append(params).append("){")
+                .append(innerCode).append("}\n");
+        return res.toString();
     }
 
     public static String getNewInstance(String className) {
@@ -79,15 +85,8 @@ public class CodeUtil {
                 String dstRefName = "res";
                 String srcGetName = PsiUtil.getGetterName(dstFiledName, srcPsiClass);
                 if (StringUtils.isNotBlank(srcGetName)) {
-                    if (LanguageSelection.LanguageEnum.JDK7 == languageEnum) {
-                        String code = getIfSetCodeJava7(srcRefName, srcGetName, dstRefName, dstSetName);
-                        res.append(code);
-                    } else if (LanguageSelection.LanguageEnum.JDK8 == languageEnum) {
-                        String code = getSetCodeJava8(dstFiledName, srcRefName, srcGetName, dstRefName, dstSetName);
-                        res.append(code);
-                    } else {
-                        throw new IllegalArgumentException("JDK语言类型不支持");
-                    }
+                    String code = getIfSetCode(languageEnum, dstFiledName, srcRefName, srcGetName, dstRefName, dstSetName);
+                    res.append(code);
                     dstFieldApplayCheck.put(dstFiledName, Boolean.TRUE);
                     break;// 找到属性跳出内循环
                 }
@@ -98,89 +97,58 @@ public class CodeUtil {
         res.append("public ").append(dstPsiClass.getQualifiedName()).append(" build() {\n")
                 .append("// TODO 校验\n").append("return res;\n}\n");
         // unchecked filed
-        String check = getUnMathedFiledComment(dstFieldApplayCheck);
+        String check = getUnMathedFiledComment("res", dstFieldApplayCheck);
         res.append(check);
         return null;
     }
 
-    public static String getUnMathedFiledComment(Map<String, Boolean> check) {
+    public static String getUnMathedFiledComment(String dstRefName, Map<String, Boolean> check) {
         StringBuilder comment = new StringBuilder("\n");
         for (String ifiledName : check.keySet()) {
             Boolean isMath = check.get(ifiledName);
             if (!isMath) {
-                comment.append("        //").append(ifiledName).append("\n");
+                comment.append(COMMENT_SLIPT).append(ifiledName).append("\n");
             }
         }
-        return comment.toString().isEmpty() ? null : comment.toString();
+        return comment.toString().isEmpty() ? null
+                : new StringBuilder().append(COMMENT_SLIPT).append(dstRefName).append("未应用的属性:  ")
+                .append(comment).toString();
     }
 
-    public static String getIfSetCodeJava7(String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
-        if (StringUtils.isBlank(srcRefName)
-                || StringUtils.isBlank(srcGetName)
-                || StringUtils.isBlank(dstRefName)
-                || StringUtils.isBlank(dstSetName)) {
-            return "";
+    public static String getIfSetCode(LanguageSelection.LanguageEnum languageEnum, String propName, String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
+        if (LanguageSelection.LanguageEnum.JDK7 == languageEnum) {
+            return getIfSetCodeJava7(srcRefName, srcGetName, dstRefName, dstSetName);
+        } else if (LanguageSelection.LanguageEnum.JDK8 == languageEnum) {
+            return getIfSetCodeJava8(propName, srcRefName, srcGetName, dstRefName, dstSetName);
+        } else {
+            throw new IllegalClassException("未匹配到java的语言");
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("if(").append(srcRefName).append(".").append(srcGetName).append("() != null){\n")
-                .append(dstRefName).append(".").append(dstSetName).append("(").append(srcRefName).append(".").append(srcGetName).append("());\n")
-                .append("}");
-        return sb.toString();
     }
 
-    public static String getSetCodeJava7(String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
-        if (StringUtils.isBlank(srcRefName)
-                || StringUtils.isBlank(srcGetName)
-                || StringUtils.isBlank(dstRefName)
-                || StringUtils.isBlank(dstSetName)) {
-            return "";
+    public static String checkParamCode(LanguageSelection.LanguageEnum languageEnum, PsiClass psiClass, String... params) {
+        if (LanguageSelection.LanguageEnum.JDK7 == languageEnum) {
+            return checkParamCodeJava7(psiClass, params);
+        } else if (LanguageSelection.LanguageEnum.JDK8 == languageEnum) {
+            return checkParamCodeJava8(psiClass, params);
+        } else {
+            throw new IllegalClassException("未匹配到java的语言");
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(dstRefName).append(".").append(dstSetName).append("(").append(srcRefName).append(".").append(srcGetName).append("());\n");
-        return sb.toString();
-    }
-
-    public static String getIfSetCodeJava8(String propName, String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
-        if (StringUtils.isBlank(propName)
-                || StringUtils.isBlank(srcRefName)
-                || StringUtils.isBlank(srcGetName)
-                || StringUtils.isBlank(dstRefName)
-                || StringUtils.isBlank(dstSetName)) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Optional.ofNullable(").append(srcRefName).append(".").append(srcGetName).append("())\n")
-                .append(".ifPresent(").append("map").append(firstCharUpperCase(propName))
-                .append(" -> ").append(dstRefName).append(".").append(dstSetName)
-                .append("(map").append(firstCharUpperCase(propName)).append("));");
-        return sb.toString();
-    }
-
-    public static String getSetCodeJava8(String propName, String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
-        if (StringUtils.isBlank(propName)
-                || StringUtils.isBlank(srcRefName)
-                || StringUtils.isBlank(srcGetName)
-                || StringUtils.isBlank(dstRefName)
-                || StringUtils.isBlank(dstSetName)) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Optional.ofNullable(").append(srcRefName).append(".").append(srcGetName).append("())\n")
-                .append(".map(").append("map").append(firstCharUpperCase(propName))
-                .append(" -> ").append(dstRefName).append(".").append(dstSetName)
-                .append("(map").append(firstCharUpperCase(propName)).append("));");
-        return sb.toString();
-    }
-
-    public static String checkParamCodeJava7(PsiClass psiClass, String... params) {
-        return checkParamCodeJava7(getClassType(psiClass), params);
     }
 
     public static String firstCharUpperCase(String oldStr) {
         return oldStr.substring(0, 1).toUpperCase() + oldStr.substring(1);
     }
 
-    public static String getParam(PsiMethod psiMethod) {
+    public static String getReturnType(PsiMethod psiMethod) {
+        if (psiMethod == null) {
+            return null;
+        }
+        return psiMethod.getReturnType().getPresentableText();
+    }
+
+    /***********************私有方法***********************/
+
+    private static String getParamStr(PsiMethod psiMethod) {
         if (psiMethod == null
                 || psiMethod.getParameterList() == null
                 || psiMethod.getParameterList().getParameters() == null
@@ -202,15 +170,6 @@ public class CodeUtil {
         }
         return sb.toString();
     }
-
-    public static String getReturnType(PsiMethod psiMethod) {
-        if (psiMethod == null) {
-            return null;
-        }
-        return psiMethod.getReturnType().getPresentableText();
-    }
-
-    /***********************私有方法***********************/
 
     private static String getClassType(PsiClass psiClass) {
         final String ARRAY_CLASS_NAME = "_Dummy_.__Array__";
@@ -338,6 +297,44 @@ public class CodeUtil {
                 .append(param).append("!= null,\"%s不能为空\",\"")
                 .append(param).append("\");");
         return sb.toString();
+    }
+
+    private static String getIfSetCodeJava7(String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
+        if (StringUtils.isBlank(srcRefName)
+                || StringUtils.isBlank(srcGetName)
+                || StringUtils.isBlank(dstRefName)
+                || StringUtils.isBlank(dstSetName)) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("if(").append(srcRefName).append(".").append(srcGetName).append("() != null){\n")
+                .append(dstRefName).append(".").append(dstSetName).append("(").append(srcRefName).append(".").append(srcGetName).append("());\n")
+                .append("}\n");
+        return sb.toString();
+    }
+
+    private static String getIfSetCodeJava8(String propName, String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
+        if (StringUtils.isBlank(propName)
+                || StringUtils.isBlank(srcRefName)
+                || StringUtils.isBlank(srcGetName)
+                || StringUtils.isBlank(dstRefName)
+                || StringUtils.isBlank(dstSetName)) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Optional.ofNullable(").append(srcRefName).append(".").append(srcGetName).append("())\n")
+                .append(".ifPresent(").append("map").append(firstCharUpperCase(propName))
+                .append(" -> ").append(dstRefName).append(".").append(dstSetName)
+                .append("(map").append(firstCharUpperCase(propName)).append("));\n");
+        return sb.toString();
+    }
+
+    private static String checkParamCodeJava7(PsiClass psiClass, String... params) {
+        return checkParamCodeJava7(getClassType(psiClass), params);
+    }
+
+    private static String checkParamCodeJava8(PsiClass psiClass, String... params) {
+        return checkParamCodeJava7(psiClass, params);
     }
 
     public static void main(String[] args) {

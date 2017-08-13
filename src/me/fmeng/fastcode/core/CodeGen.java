@@ -31,7 +31,7 @@ public interface CodeGen {
     public void replaceMethod(List<PsiElement> psiElements, PsiMethod psiMethod);
 
     /**
-     * 4. 格式化代码
+     * 4. 优化导入
      */
     public void format(PsiClass psiClass);
 }

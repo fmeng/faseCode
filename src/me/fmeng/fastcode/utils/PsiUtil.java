@@ -61,18 +61,27 @@ public class PsiUtil {
         return null;
     }
 
-    public static PsiClass getPsiClass(AnActionEvent event) {
-        PsiClass psiClass = PsiTreeUtil.getParentOfType(getPsiMethod(event), PsiClass.class);
-        return psiClass;
-    }
-
     public static PsiClass getPsiClass(PsiMethod psiMethod) {
         PsiClass psiClass = PsiTreeUtil.getParentOfType(psiMethod, PsiClass.class);
         return psiClass;
     }
 
+    public static PsiJavaFile getPsiJavaFile(PsiMethod psiMethod) {
+        PsiJavaFile psiJavaFile = PsiTreeUtil.getParentOfType(psiMethod, PsiJavaFile.class);
+        return psiJavaFile;
+    }
+
+    public static PsiJavaFile getPsiJavaFile(PsiClass psiClass) {
+        PsiJavaFile psiJavaFile = PsiTreeUtil.getParentOfType(psiClass, PsiJavaFile.class);
+        return psiJavaFile;
+    }
+
     public static PsiClass getPsiClass(PsiType psiType) {
         return psiType instanceof PsiClassType ? ((PsiClassType) psiType).resolve() : null;
+    }
+
+    public static PsiType getPsiType(PsiClass psiClass){
+        return JavaPsiFacade.getInstance(psiClass.getProject()).getElementFactory().createType(psiClass);
     }
 
     public static PsiMethod getPsiMethod(AnActionEvent e) {

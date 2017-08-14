@@ -44,8 +44,20 @@
          </action>
       </group>
 
+    <!-- legalStatus -->
+    <group id="checkParam" text="checkParam" popup="true">
+      <action id="checkParamJDK7"  text="checkParamJDK7"
+              description="checkParamJDK7" class="me.fmeng.fastcode.action.jdk7.CheckParamJDK7">
+        <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt C"/>
+      </action>
+      <action id="checkParamJDK8"  text="checkParamJDK8"
+              description="checkParamJDK8" class="me.fmeng.fastcode.action.jdk8.CheckParamJDK8">
+        <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt C"/>
+      </action>
+    </group>
+
       <!-- builder -->
-      <group id="builder" text="builder" popup="true">
+     <!-- <group id="builder" text="builder" popup="true">
         <action id="builderJDK7"  text="builderJDK7"
                 description="builderJDK7" class="me.fmeng.fastcode.action.jdk7.BuilderJDK7">
           <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt B"/>
@@ -56,8 +68,9 @@
         </action>
       </group>
       <add-to-group group-id="CodeMenu" anchor="first"/>
+    </group>-->
+      <add-to-group group-id="CodeMenu" anchor="first"/>
     </group>
-
   </actions>
 
 </idea-plugin>

@@ -41,11 +41,10 @@ public abstract class Builder extends MethodGenTemplate implements LanguageSelec
 
         // build
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
-        String buildClassStr = CodeUtil.getFieldBuildClass(srcParams, dstPsiClass, this.jdkLanguage);
         // static method
         PsiMethod staticBuildMethod = elementFactory.createMethodFromText(CodeUtil.BUILD_METHOD_STRING, dstPsiClass);
-        // inner class
-        PsiMethod buildClass = elementFactory.createMethodFromText(buildClassStr, dstPsiClass);
+        // Builder Class
+        PsiClass buildClass = CodeUtil.getFieldBuildClass(srcParams, dstPsiClass, this.jdkLanguage);
         List<PsiElement> resPsi = new ArrayList<>();
         resPsi.add(staticBuildMethod);
         resPsi.add(buildClass);

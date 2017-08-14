@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
 import me.fmeng.fastcode.Conf;
 import me.fmeng.fastcode.utils.PsiUtil;
@@ -55,17 +56,17 @@ public abstract class MethodGenTemplate extends AnAction implements CodeGen {
 
     @Override
     public void replaceMethod(List<PsiElement> psiElements, PsiMethod srcPsiMethod) {
-        PsiClass psiClass = PsiUtil.getPsiClass(srcPsiMethod);
+        PsiJavaFile psiJavaFile = PsiUtil.getPsiJavaFile(srcPsiMethod);
         if (psiElements != null && psiElements.size() > 0) {
             PsiElement latestPsiElement = srcPsiMethod;
             for (PsiElement ipsiElemet : psiElements) {
                 // 逐条添加Element
-                psiClass.addAfter(ipsiElemet, latestPsiElement);
+                psiJavaFile.addAfter(ipsiElemet, latestPsiElement);
                 latestPsiElement = ipsiElemet;
             }
         }
         // 删除原方法
-        psiClass.deleteChildRange(srcPsiMethod, srcPsiMethod);
+        psiJavaFile.deleteChildRange(srcPsiMethod, srcPsiMethod);
     }
 
     @Override

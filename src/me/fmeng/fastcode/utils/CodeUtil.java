@@ -1,15 +1,12 @@
 package me.fmeng.fastcode.utils;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
+import com.google.common.collect.Maps;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiEditorUtil;
 import me.fmeng.fastcode.action.LanguageSelection;
 import org.apache.commons.lang.IllegalClassException;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,53 +50,108 @@ public class CodeUtil {
         return res.toString();
     }
 
+    public static String fastCodeWraprMethod(PsiMethod psiMethod, String methodName, String innerCode) {
+        String params = getParamStr(psiMethod);
+        String returnType = getReturnType(psiMethod);
+        StringBuilder res = new StringBuilder();
+        res.append(psiMethod.getModifierList().getText())
+                .append(" ").append(returnType).append(" ");
+        if (methodName == null) {
+            res.append(psiMethod.getName());
+        } else {
+            res.append(methodName);
+        }
+        String origBodyStr = psiMethod.getBody().getText().replace("{","").replace("}","");
+        res.append("(").append(params).append("){")
+                .append(innerCode)
+                .append(origBodyStr).append("\n")
+                .append("}\n");
+        return res.toString();
+    }
+
     public static String getNewInstance(String className) {
         StringBuilder res = new StringBuilder();
         res.append(className).append(" res = new ").append(className).append("();\n");
         return res.toString();
     }
 
-    public static String getFieldBuildClass(Map<String, PsiClass> params, PsiClass dstPsiClass, LanguageSelection.LanguageEnum languageEnum) {
-        StringBuilder res = new StringBuilder();
+    public static PsiClass getFieldBuildClass(Map<String, PsiClass> params, PsiClass dstPsiClass, LanguageSelection.LanguageEnum languageEnum) {
         List<PsiField> dstPsiFields = PsiUtil.getPsiFields(dstPsiClass);
         if (dstPsiFields == null || dstPsiFields.size() == 0) {
             return null;
         }
-        res.append("static class Builder {\nprivate ")
-                .append(dstPsiClass.getQualifiedName()).append("res;\n\nBuilder() {\nthis.res = new ")
-                .append(dstPsiClass.getQualifiedName()).append("();\n}\n\n");
-        Iterator<String> it = params.keySet().iterator();
-        // initCheck
-        Map<String, Boolean> dstFieldApplayCheck = new HashMap<>();
+        // 构建PsiClass
+        PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(dstPsiClass.getProject());
+        StringBuilder classStr = new StringBuilder("static class Builder{\n}\n");
+        PsiClass builderClass = elementFactory.createClassFromText(classStr.toString()
+                , PsiUtil.getPsiJavaFile(dstPsiClass));
+
+        // 添加属性
+        PsiField resFiled = elementFactory.createFieldFromText(
+                new StringBuilder("private ")
+                        .append(dstPsiClass.getName())
+                        .append(" res;\n")
+                        .toString(),
+                builderClass);
+        PsiElement latestPsiElement = resFiled;
+        builderClass.add(resFiled);
+        // 添加无参构造器
+        PsiMethod constructor = elementFactory.createMethodFromText(new StringBuilder()
+                        .append("private Builder(){\n")
+                        .append("this.res = new ").append(dstPsiClass.getName()).append("();\n")
+                        .append("}")
+                        .toString(),
+                builderClass);
+        builderClass.addAfter(constructor, latestPsiElement);
+        latestPsiElement = constructor;
+        // 初始化属性检查的map
+        Map<String, Boolean> dstFieldApplayCheck = Maps.newHashMap();
         for (PsiField dstFiled : dstPsiFields) {
             dstFieldApplayCheck.put(dstFiled.getName(), Boolean.FALSE);
         }
-        while (it.hasNext()) {
-            String srcRefName = it.next();
-            PsiClass srcPsiClass = params.get(srcRefName);
-            res.append("public Builder ").append(srcRefName).append("(String ").append(srcRefName).append(") {\n");
-            List<PsiField> srcPsiFields = PsiUtil.getPsiFields(srcPsiClass);
-            for (PsiField idstPsiFiled : dstPsiFields) {
-                String dstFiledName = idstPsiFiled.getName();
-                String dstSetName = PsiUtil.getSetterName(dstFiledName, dstPsiClass);
-                String dstRefName = "res";
-                String srcGetName = PsiUtil.getGetterName(dstFiledName, srcPsiClass);
-                if (StringUtils.isNotBlank(srcGetName)) {
-                    String code = getIfSetCode(languageEnum, dstFiledName, srcRefName, srcGetName, dstRefName, dstSetName);
-                    res.append(code);
-                    dstFieldApplayCheck.put(dstFiledName, Boolean.TRUE);
-                    break;// 找到属性跳出内循环
+        // 参数构建器
+        for (String isrcParamName : params.keySet()) {
+            StringBuilder bodySB = new StringBuilder();
+            PsiClass isrcPsiClass = params.get(isrcParamName);
+            String methodName = CodeUtil.firstCharLowerCase(isrcPsiClass.getName());
+            // 构建方法Body的过程
+            bodySB.append(CodeUtil.checkParamCode(languageEnum, isrcPsiClass, isrcParamName));
+            if (dstPsiFields != null && !dstPsiFields.isEmpty()) {
+                for (PsiField idstFieldName : dstPsiFields) {
+                    String srcGetterName = PsiUtil.getGetterName(idstFieldName.getName(), isrcPsiClass);
+                    String dstSetterName = PsiUtil.getSetterName(idstFieldName.getName(), dstPsiClass);
+                    if (StringUtils.isNotBlank(srcGetterName)) {
+                        String ifSetCode = CodeUtil.getIfSetCode(languageEnum, idstFieldName.getName(),
+                                isrcParamName, srcGetterName, "res", dstSetterName);
+                        bodySB.append(ifSetCode);
+                        dstFieldApplayCheck.put(idstFieldName.getName(), Boolean.TRUE);
+                    }
                 }
             }
-            res.append("return this;\n}\n\n");
+            // 包装方法
+            StringBuilder methodSB = new StringBuilder();
+            methodSB.append("public void ").append(methodName)
+                    .append("(")
+                    .append(isrcPsiClass.getName()).append(" ").append(isrcParamName)
+                    .append("){\n").append(bodySB)
+                    .append("}\n");
+            // 添加到PsiClass
+            PsiMethod psiMethod = elementFactory.createMethodFromText(methodSB.toString(), dstPsiClass);
+            builderClass.addAfter(psiMethod, latestPsiElement);
+            latestPsiElement = psiMethod;
         }
-        // build method
-        res.append("public ").append(dstPsiClass.getQualifiedName()).append(" build() {\n")
-                .append("// TODO 校验\n").append("return res;\n}\n");
-        // unchecked filed
-        String check = getUnMathedFiledComment("res", dstFieldApplayCheck);
-        res.append(check);
-        return null;
+        String checkCode = CodeUtil.getUnMathedFiledComment("res", dstFieldApplayCheck);
+        StringBuilder builderMethodStr = new StringBuilder();
+        builderMethodStr.append("public ").append(dstPsiClass.getName()).append("build(){\n")
+                .append("// checkParam of res\n")
+                .append(checkCode)
+                .append("return res;\n")
+                .append("}\n");
+        PsiMethod psiMethod = elementFactory.createMethodFromText(builderMethodStr.toString(), dstPsiClass);
+        builderClass.addAfter(psiMethod, latestPsiElement);
+        String text = builderClass.getText();
+        System.out.print(text);
+        return builderClass;
     }
 
     public static String getUnMathedFiledComment(String dstRefName, Map<String, Boolean> check) {
@@ -137,6 +189,10 @@ public class CodeUtil {
 
     public static String firstCharUpperCase(String oldStr) {
         return oldStr.substring(0, 1).toUpperCase() + oldStr.substring(1);
+    }
+
+    public static String firstCharLowerCase(String oldStr) {
+        return oldStr.substring(0, 1).toLowerCase() + oldStr.substring(1);
     }
 
     public static String getReturnType(PsiMethod psiMethod) {
@@ -218,7 +274,7 @@ public class CodeUtil {
                 sb.append(checkParamCodeArrayJava7(ip)).append("\n");
             }
             return sb.toString();
-        } else if ("java.util.List".equals(classType)) {
+        } else if ("java.util.Collection".equals(classType)) {
             // List
             for (String ip : params) {
                 sb.append(checkParamCodeListJava7(ip)).append("\n");
@@ -335,6 +391,22 @@ public class CodeUtil {
 
     private static String checkParamCodeJava8(PsiClass psiClass, String... params) {
         return checkParamCodeJava7(psiClass, params);
+    }
+
+    public static void getS(PsiMethod psiMethod){
+        PsiJavaFile psiJavaFile = PsiUtil.getPsiJavaFile(psiMethod);
+        PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiJavaFile.getProject());
+        PsiClass className = elementFactory.createClass("ClassName");
+        PsiClassInitializer classInitializer = elementFactory.createClassInitializer();
+        //classInitializer.accept();
+        PsiEditorUtil.Service.getInstance().findEditorByPsiElement(className);
+        String text1 = className.getText();
+        System.out.println(text1);
+        System.out.println("-------------------");
+        PsiClass text2 = elementFactory.createClassFromText("public class Test{}\n", psiJavaFile);
+        System.out.println(text2);
+        System.out.println("-------------------");
+        System.out.println("-------------------");
     }
 
     public static void main(String[] args) {

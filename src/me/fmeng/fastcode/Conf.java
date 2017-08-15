@@ -8,6 +8,7 @@ import java.util.Map;
  * Created by fmeng on 13/08/2017.
  */
 public final class Conf {
+    public static final boolean ENABLE_LOMBOK = Boolean.TRUE;
     /**
      * 强制命名
      */
@@ -27,7 +28,8 @@ public final class Conf {
         IMPORT_CHECK_MAP.put("org.apache.commons.lang.StringUtils","StringUtils");
         IMPORT_CHECK_MAP.put("org.apache.commons.lang3.ArrayUtils","ArrayUtil");
         IMPORT_CHECK_MAP.put("org.apache.commons.collections4.CollectionUtils","CollectionUtils");
-        IMPORT_CHECK_MAP.put("org.apache.commons.collections4.MapUtils;","MapUtils");
-        IMPORT_CHECK_MAP.put("java.util.Optional;","Optional");
+        IMPORT_CHECK_MAP.put("org.apache.commons.collections4.MapUtils","MapUtils");
+        IMPORT_CHECK_MAP.put("java.util.Optional","Optional");
+        IMPORT_CHECK_MAP.put("java.util.Objects","Objects");
     }
 }

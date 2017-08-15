@@ -11,6 +11,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.CollectionListModel;
+import me.fmeng.fastcode.Conf;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -22,7 +23,7 @@ import java.util.Map;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public class PsiUtil {
+public abstract class PsiUtil {
     /***********************常量***********************/
     private PsiUtil() {
     }
@@ -43,7 +44,8 @@ public class PsiUtil {
                 return matchingIsMethodName;
             }
         }
-        return null;
+
+        return getGetterNameFromeAnnotation(fieldName, psiClass);
     }
 
     public static String getSetterName(String fieldName, PsiClass psiClass) {
@@ -58,7 +60,7 @@ public class PsiUtil {
                 return matchingSetMethodName;
             }
         }
-        return null;
+        return getSetterNameFromeAnnotation(fieldName, psiClass);
     }
 
     public static PsiClass getPsiClass(PsiMethod psiMethod) {
@@ -277,6 +279,45 @@ public class PsiUtil {
         return psiClass.getText().contains(word);
     }
 
+    private static String getGetterNameFromeAnnotation(String fieldName, PsiClass psiClass){
+        String matchingGetMethodName = "get" + CodeUtil.firstCharUpperCase(fieldName);
+        if (Conf.ENABLE_LOMBOK){
+            String annotationClassStr = psiClass.getModifierList().getText();
+            if (StringUtils.contains(annotationClassStr, "@Getter")){
+                return matchingGetMethodName;
+            }
+            List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
+            if (psiFields != null && !psiFields.isEmpty()){
+                for (PsiField ipsiFiled : psiFields){
+                    String annotationFieldStr = ipsiFiled.getModifierList().getText();
+                    if (StringUtils.contains(annotationFieldStr, "@Getter")){
+                        return matchingGetMethodName;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String getSetterNameFromeAnnotation(String fieldName, PsiClass psiClass){
+        String matchingSetMethodName = "set" + CodeUtil.firstCharUpperCase(fieldName);
+        if (Conf.ENABLE_LOMBOK){
+            String annotationClassStr = psiClass.getModifierList().getText();
+            if (StringUtils.contains(annotationClassStr, "@Setter")){
+                return matchingSetMethodName;
+            }
+            List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
+            if (psiFields != null && !psiFields.isEmpty()){
+                for (PsiField ipsiFiled : psiFields){
+                    String annotationFieldStr = ipsiFiled.getModifierList().getText();
+                    if (StringUtils.contains(annotationFieldStr, "@Setter")){
+                        return matchingSetMethodName;
+                    }
+                }
+            }
+        }
+        return null;
+    }
     public static void main(String[] args) {
 
     }

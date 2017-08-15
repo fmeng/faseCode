@@ -2,7 +2,6 @@ package me.fmeng.fastcode.utils;
 
 import com.google.common.collect.Maps;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiEditorUtil;
 import me.fmeng.fastcode.action.LanguageSelection;
 import org.apache.commons.lang.IllegalClassException;
 import org.apache.commons.lang.StringUtils;
@@ -13,7 +12,7 @@ import java.util.Map;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public class CodeUtil {
+public abstract class CodeUtil {
 
     /***********************常量***********************/
     public static final String BUILD_METHOD_STRING
@@ -50,23 +49,23 @@ public class CodeUtil {
         return res.toString();
     }
 
-    public static String fastCodeWraprMethod(PsiMethod psiMethod, String methodName, String innerCode) {
+    public static String fastCodeWraprMethod(PsiMethod psiMethod, String innerCode) {
         String params = getParamStr(psiMethod);
         String returnType = getReturnType(psiMethod);
         StringBuilder res = new StringBuilder();
         res.append(psiMethod.getModifierList().getText())
                 .append(" ").append(returnType).append(" ");
-        if (methodName == null) {
-            res.append(psiMethod.getName());
-        } else {
-            res.append(methodName);
+        res.append(psiMethod.getName());
+        String origBodyStr = psiMethod.getBody().getText();
+        if (StringUtils.isNotBlank(origBodyStr)){
+            // 去除开头的...{...
+            origBodyStr = origBodyStr.replaceAll("^(\\s*\\{\\s*)", "");
+            res.append("(").append(params).append("){")
+                    .append(innerCode)
+                    .append(origBodyStr).append("\n");
+            return res.toString();
         }
-        String origBodyStr = psiMethod.getBody().getText().replace("{","").replace("}","");
-        res.append("(").append(params).append("){")
-                .append(innerCode)
-                .append(origBodyStr).append("\n")
-                .append("}\n");
-        return res.toString();
+        return psiMethod.getText();
     }
 
     public static String getNewInstance(String className) {
@@ -255,7 +254,7 @@ public class CodeUtil {
         return "java.lang.Object";
     }
 
-    private static String checkParamCodeJava7(String classType, String... params) {
+    private static String doCheckParamCode(String classType, LanguageSelection.LanguageEnum languageEnum, String... params) {
         if (classType == null
                 || params == null
                 || params.length < 0) {
@@ -289,7 +288,13 @@ public class CodeUtil {
         } else {
             // Object
             for (String ip : params) {
-                sb.append(checkParamCodeDefaultJava7(ip)).append("\n");
+                if (LanguageSelection.LanguageEnum.JDK7 == languageEnum){
+                    sb.append(checkParamCodeDefaultJava7(ip)).append("\n");
+                }else if (LanguageSelection.LanguageEnum.JDK8 == languageEnum){
+                    sb.append(checkParamCodeDefaultJava8(ip)).append("\n");
+                }else {
+
+                }
             }
         }
         return sb.toString();
@@ -355,6 +360,18 @@ public class CodeUtil {
         return sb.toString();
     }
 
+    private static String checkParamCodeDefaultJava8(String param) {
+        if (param == null
+                || "".equals(param)) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Preconditions.checkArgument(")
+                .append("Objects.nonNull(").append(param).append("),\"%s不能为空\",\"")
+                .append(param).append("\");");
+        return sb.toString();
+    }
+
     private static String getIfSetCodeJava7(String srcRefName, String srcGetName, String dstRefName, String dstSetName) {
         if (StringUtils.isBlank(srcRefName)
                 || StringUtils.isBlank(srcGetName)
@@ -386,27 +403,11 @@ public class CodeUtil {
     }
 
     private static String checkParamCodeJava7(PsiClass psiClass, String... params) {
-        return checkParamCodeJava7(getClassType(psiClass), params);
+        return doCheckParamCode(getClassType(psiClass), LanguageSelection.LanguageEnum.JDK7, params);
     }
 
     private static String checkParamCodeJava8(PsiClass psiClass, String... params) {
-        return checkParamCodeJava7(psiClass, params);
-    }
-
-    public static void getS(PsiMethod psiMethod){
-        PsiJavaFile psiJavaFile = PsiUtil.getPsiJavaFile(psiMethod);
-        PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiJavaFile.getProject());
-        PsiClass className = elementFactory.createClass("ClassName");
-        PsiClassInitializer classInitializer = elementFactory.createClassInitializer();
-        //classInitializer.accept();
-        PsiEditorUtil.Service.getInstance().findEditorByPsiElement(className);
-        String text1 = className.getText();
-        System.out.println(text1);
-        System.out.println("-------------------");
-        PsiClass text2 = elementFactory.createClassFromText("public class Test{}\n", psiJavaFile);
-        System.out.println(text2);
-        System.out.println("-------------------");
-        System.out.println("-------------------");
+        return doCheckParamCode(getClassType(psiClass), LanguageSelection.LanguageEnum.JDK8, params);
     }
 
     public static void main(String[] args) {

@@ -283,15 +283,23 @@ public abstract class PsiUtil {
         String matchingGetMethodName = "get" + CodeUtil.firstCharUpperCase(fieldName);
         if (Conf.ENABLE_LOMBOK){
             String annotationClassStr = psiClass.getModifierList().getText();
-            if (StringUtils.contains(annotationClassStr, "@Getter")){
-                return matchingGetMethodName;
-            }
             List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
             if (psiFields != null && !psiFields.isEmpty()){
+                // class getter
+                if (StringUtils.contains(annotationClassStr, "@Getter")){
+                    for (PsiField ipsiFiled : psiFields){
+                        if (StringUtils.equals(fieldName, ipsiFiled.getName())){
+                            return matchingGetMethodName;
+                        }
+                    }
+                }
+                // method getter
                 for (PsiField ipsiFiled : psiFields){
                     String annotationFieldStr = ipsiFiled.getModifierList().getText();
                     if (StringUtils.contains(annotationFieldStr, "@Getter")){
-                        return matchingGetMethodName;
+                        if (StringUtils.equals(fieldName, ipsiFiled.getName())){
+                            return matchingGetMethodName;
+                        }
                     }
                 }
             }
@@ -303,15 +311,23 @@ public abstract class PsiUtil {
         String matchingSetMethodName = "set" + CodeUtil.firstCharUpperCase(fieldName);
         if (Conf.ENABLE_LOMBOK){
             String annotationClassStr = psiClass.getModifierList().getText();
-            if (StringUtils.contains(annotationClassStr, "@Setter")){
-                return matchingSetMethodName;
-            }
             List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
             if (psiFields != null && !psiFields.isEmpty()){
+                // class getter
+                if (StringUtils.contains(annotationClassStr, "@Getter")){
+                    for (PsiField ipsiFiled : psiFields){
+                        if (StringUtils.equals(fieldName, ipsiFiled.getName())){
+                            return matchingSetMethodName;
+                        }
+                    }
+                }
+                // method getter
                 for (PsiField ipsiFiled : psiFields){
                     String annotationFieldStr = ipsiFiled.getModifierList().getText();
-                    if (StringUtils.contains(annotationFieldStr, "@Setter")){
-                        return matchingSetMethodName;
+                    if (StringUtils.contains(annotationFieldStr, "@Getter")){
+                        if (StringUtils.equals(fieldName, ipsiFiled.getName())){
+                            return matchingSetMethodName;
+                        }
                     }
                 }
             }

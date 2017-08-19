@@ -78,7 +78,7 @@ public abstract class CopyProps extends MethodGenTemplate implements LanguageSel
         res.append(CodeUtil.getUnMathedFiledComment(dstRefName, dstFieldApplayCheck));
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
         // 构建方法
-        String copyValuesStr = Conf.FORCED_NAME ? CodeUtil.wraprMethod(psiMethod, Conf.COPY_PROPS_FUNCTION_NAME, res.toString())
+        String copyValuesStr = Conf.force_name ? CodeUtil.wraprMethod(psiMethod, Conf.copy_props_function_name, res.toString())
                 : CodeUtil.wraprMethod(psiMethod, res.toString());
         PsiMethod copyValuesMethod = elementFactory.createMethodFromText(copyValuesStr, dstPsiClass);
         List<PsiElement> resPsi = Lists.newArrayList();

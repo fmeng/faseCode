@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public abstract class PsiUtil {
+public final class PsiUtil {
     /***********************常量***********************/
     private PsiUtil() {
     }
@@ -171,7 +171,7 @@ public abstract class PsiUtil {
     }
 
     /**
-     * 详见 me.fmeng.fastcode.Conf#IMPORT_CHECK_MAP
+     * 详见 me.fmeng.fastcode.Conf#import_check_map
      *
      * @param psiClass
      * @param candidateMap
@@ -281,7 +281,7 @@ public abstract class PsiUtil {
 
     private static String getGetterNameFromeAnnotation(String fieldName, PsiClass psiClass){
         String matchingGetMethodName = "get" + CodeUtil.firstCharUpperCase(fieldName);
-        if (Conf.ENABLE_LOMBOK){
+        if (Conf.enable_lombok){
             String annotationClassStr = psiClass.getModifierList().getText();
             List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
             if (psiFields != null && !psiFields.isEmpty()){
@@ -309,7 +309,7 @@ public abstract class PsiUtil {
 
     private static String getSetterNameFromeAnnotation(String fieldName, PsiClass psiClass){
         String matchingSetMethodName = "set" + CodeUtil.firstCharUpperCase(fieldName);
-        if (Conf.ENABLE_LOMBOK){
+        if (Conf.enable_lombok){
             String annotationClassStr = psiClass.getModifierList().getText();
             List<PsiField> psiFields = PsiUtil.getPsiFields(psiClass);
             if (psiFields != null && !psiFields.isEmpty()){

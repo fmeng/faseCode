@@ -59,11 +59,11 @@
       <!-- builder -->
      <!-- <group id="builder" text="builder" popup="true">
         <action id="builderJDK7"  text="builderJDK7"
-                description="builderJDK7" class="me.fmeng.fastcode.action.jdk7.BuilderJDK7">
+                description="builderJDK7" class="me.fmeng.fastcode.action.jdk7.BuilderTJDK77">
           <keyboard-shortcut keymap="$default" first-keystroke="alt F" second-keystroke="alt B"/>
         </action>
         <action id="builderJDK8"  text="builderJDK8"
-                description="builderJDK8" class="me.fmeng.fastcode.action.jdk8.BuilderJDK8">
+                description="builderJDK8" class="me.fmeng.fastcode.action.jdk8.BuilderTJDK88">
           <keyboard-shortcut keymap="$default" first-keystroke="alt M" second-keystroke="alt B"/>
         </action>
       </group>

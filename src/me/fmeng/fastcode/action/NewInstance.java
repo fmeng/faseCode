@@ -77,7 +77,7 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
         res.append(CodeUtil.getUnMathedFiledComment("res", dstFieldApplayCheck));
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
         // 返回结果
-        String newInstanceMethodString = Conf.FORCED_NAME ? CodeUtil.wraprMethod(psiMethod, Conf.NEW_INSTANCE_FUNCTION_NAME, res.append(CodeUtil.RETURN_RES).toString())
+        String newInstanceMethodString = Conf.force_name ? CodeUtil.wraprMethod(psiMethod, Conf.new_instance_fanction_name, res.append(CodeUtil.RETURN_RES).toString())
                 : CodeUtil.wraprMethod(psiMethod, res.append(CodeUtil.RETURN_RES).toString());
         PsiMethod newInstanceMethod = elementFactory.createMethodFromText(newInstanceMethodString, thisPsiClass);
         List<PsiElement> resPsi = new ArrayList<>();

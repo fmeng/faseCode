@@ -12,12 +12,12 @@ import java.util.Map;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public abstract class CodeUtil {
+public final class CodeUtil {
 
     /***********************常量***********************/
     public static final String BUILD_METHOD_STRING
-            = "public static Builder builder() {\n"
-            + "return new Builder();\n"
+            = "public static BuilderT builder() {\n"
+            + "return new BuilderT();\n"
             + "}\n";
     public static final String RETURN_RES = "return res;\n";
     public static final String COMMENT_SLIPT = "        //";
@@ -81,7 +81,7 @@ public abstract class CodeUtil {
         }
         // 构建PsiClass
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(dstPsiClass.getProject());
-        StringBuilder classStr = new StringBuilder("static class Builder{\n}\n");
+        StringBuilder classStr = new StringBuilder("static class BuilderT{\n}\n");
         PsiClass builderClass = elementFactory.createClassFromText(classStr.toString()
                 , PsiUtil.getPsiJavaFile(dstPsiClass));
 
@@ -96,7 +96,7 @@ public abstract class CodeUtil {
         builderClass.add(resFiled);
         // 添加无参构造器
         PsiMethod constructor = elementFactory.createMethodFromText(new StringBuilder()
-                        .append("private Builder(){\n")
+                        .append("private BuilderT(){\n")
                         .append("this.res = new ").append(dstPsiClass.getName()).append("();\n")
                         .append("}")
                         .toString(),

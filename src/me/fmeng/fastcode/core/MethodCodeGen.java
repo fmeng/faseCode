@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public interface CodeGen {
+public interface MethodCodeGen {
 
     /**
      * 1. 获得事件击中的方法体

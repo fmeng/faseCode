@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public abstract class Builder extends MethodGenTemplate implements LanguageSelection {
+public abstract class BuilderT extends MethodGenTemplate implements LanguageSelection {
 
     private LanguageEnum jdkLanguage;
 
@@ -43,7 +43,7 @@ public abstract class Builder extends MethodGenTemplate implements LanguageSelec
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
         // static method
         PsiMethod staticBuildMethod = elementFactory.createMethodFromText(CodeUtil.BUILD_METHOD_STRING, dstPsiClass);
-        // Builder Class
+        // BuilderT Class
         PsiClass buildClass = CodeUtil.getFieldBuildClass(srcParams, dstPsiClass, this.jdkLanguage);
         List<PsiElement> resPsi = new ArrayList<>();
         resPsi.add(staticBuildMethod);

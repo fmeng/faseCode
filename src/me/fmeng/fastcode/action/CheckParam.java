@@ -43,7 +43,7 @@ public abstract class CheckParam extends MethodGenTemplate implements LanguageSe
         }
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
         // 返回结果
-        String newInstanceMethodString = Conf.FORCED_NAME ? CodeUtil.fastCodeWraprMethod(psiMethod, res.toString())
+        String newInstanceMethodString = Conf.force_name ? CodeUtil.fastCodeWraprMethod(psiMethod, res.toString())
                 : CodeUtil.wraprMethod(psiMethod, res.append(CodeUtil.RETURN_RES).toString());
         PsiMethod newInstanceMethod = elementFactory.createMethodFromText(newInstanceMethodString, thisPsiClass);
         List<PsiElement> resPsi = new ArrayList<>();

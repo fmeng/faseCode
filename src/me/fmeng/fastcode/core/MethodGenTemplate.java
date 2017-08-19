@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by fmeng on 06/08/2017.
  */
-public abstract class MethodGenTemplate extends AnAction implements CodeGen {
+public abstract class MethodGenTemplate extends AnAction implements MethodCodeGen {
     /**
      * 整个构建流程
      */
@@ -71,7 +71,7 @@ public abstract class MethodGenTemplate extends AnAction implements CodeGen {
 
     @Override
     public void format(PsiClass psiClass) {
-        PsiUtil.ensureImport(psiClass, Conf.IMPORT_CHECK_MAP);
+        PsiUtil.ensureImport(psiClass, Conf.import_check_map);
     }
 
     public abstract List<PsiElement> doCreatePsiElement(PsiMethod psiMethod);

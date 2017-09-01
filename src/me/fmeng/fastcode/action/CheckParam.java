@@ -6,7 +6,6 @@ import me.fmeng.fastcode.core.MethodGenTemplate;
 import me.fmeng.fastcode.utils.CodeUtil;
 import me.fmeng.fastcode.utils.PsiUtil;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ public abstract class CheckParam extends MethodGenTemplate implements LanguageSe
     private LanguageEnum jdkLanguage;
 
     @Override
-    public List<PsiElement> doCreatePsiElement(PsiMethod psiMethod) {
+    public PsiMethod doCreatePsiMethod(PsiMethod psiMethod) {
         // 回调子类JDK版本
         jdkLanguage = selectCallBack();
         Map<String, PsiClass> params = PsiUtil.getParams(psiMethod);
@@ -43,11 +42,9 @@ public abstract class CheckParam extends MethodGenTemplate implements LanguageSe
         }
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiMethod.getProject());
         // 返回结果
-        String newInstanceMethodString = Conf.force_name ? CodeUtil.fastCodeWraprMethod(psiMethod, res.toString())
+        String newInstanceMethodString = Conf.force_name ? CodeUtil.checkParamWraprMethod(psiMethod, res.toString())
                 : CodeUtil.wraprMethod(psiMethod, res.append(CodeUtil.RETURN_RES).toString());
         PsiMethod newInstanceMethod = elementFactory.createMethodFromText(newInstanceMethodString, thisPsiClass);
-        List<PsiElement> resPsi = new ArrayList<>();
-        resPsi.add(newInstanceMethod);
-        return resPsi;
+        return newInstanceMethod;
     }
 }

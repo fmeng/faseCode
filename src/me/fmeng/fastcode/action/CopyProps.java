@@ -1,6 +1,5 @@
 package me.fmeng.fastcode.action;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.*;
 import me.fmeng.fastcode.Conf;
@@ -19,7 +18,7 @@ public abstract class CopyProps extends MethodGenTemplate implements LanguageSel
     private LanguageEnum jdkLanguage;
 
     @Override
-    public List<PsiElement> doCreatePsiElement(PsiMethod psiMethod) {
+    public PsiMethod doCreatePsiMethod(PsiMethod psiMethod) {
         jdkLanguage = selectCallBack();
         // params 是有序map
         Map<String, PsiClass> params = PsiUtil.getParams(psiMethod);
@@ -81,8 +80,6 @@ public abstract class CopyProps extends MethodGenTemplate implements LanguageSel
         String copyValuesStr = Conf.force_name ? CodeUtil.wraprMethod(psiMethod, Conf.copy_props_function_name, res.toString())
                 : CodeUtil.wraprMethod(psiMethod, res.toString());
         PsiMethod copyValuesMethod = elementFactory.createMethodFromText(copyValuesStr, dstPsiClass);
-        List<PsiElement> resPsi = Lists.newArrayList();
-        resPsi.add(copyValuesMethod);
-        return resPsi;
+        return copyValuesMethod;
     }
 }

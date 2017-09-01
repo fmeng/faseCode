@@ -2,10 +2,7 @@ package me.fmeng.fastcode.core;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
-
-import java.util.List;
 
 /**
  * Created by fmeng on 06/08/2017.
@@ -23,12 +20,12 @@ public interface MethodCodeGen {
      * 2. 生成要替换的Elements
      * @return
      */
-    public List<PsiElement> createPsiElement(PsiMethod psiMethod);
+    public PsiMethod createPsiElement(PsiMethod psiMethod);
 
     /**
      * 3. 替换原方法
      */
-    public void replaceMethod(List<PsiElement> psiElements, PsiMethod psiMethod);
+    public void replaceMethod(PsiMethod dst, PsiMethod src);
 
     /**
      * 4. 优化导入

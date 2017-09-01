@@ -18,7 +18,7 @@ public abstract class BuilderT extends MethodGenTemplate implements LanguageSele
     private LanguageEnum jdkLanguage;
 
     @Override
-    public List<PsiElement> doCreatePsiElement(PsiMethod psiMethod) {
+    public PsiMethod doCreatePsiMethod(PsiMethod psiMethod) {
         jdkLanguage = selectCallBack();
         // params 是有序map
         Map<String, PsiClass> params = PsiUtil.getParams(psiMethod);
@@ -48,6 +48,6 @@ public abstract class BuilderT extends MethodGenTemplate implements LanguageSele
         List<PsiElement> resPsi = new ArrayList<>();
         resPsi.add(staticBuildMethod);
         resPsi.add(buildClass);
-        return resPsi;
+        return null;
     }
 }

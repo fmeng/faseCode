@@ -7,7 +7,6 @@ import me.fmeng.fastcode.utils.CodeUtil;
 import me.fmeng.fastcode.utils.PsiUtil;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,7 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
     private LanguageEnum jdkLanguage;
 
     @Override
-    public List<PsiElement> doCreatePsiElement(PsiMethod psiMethod) {
+    public PsiMethod doCreatePsiMethod(PsiMethod psiMethod) {
         // 回调子类JDK版本
         jdkLanguage = selectCallBack();
         Map<String, PsiClass> params = PsiUtil.getParams(psiMethod);
@@ -80,9 +79,7 @@ public abstract class NewInstance extends MethodGenTemplate implements LanguageS
         String newInstanceMethodString = Conf.force_name ? CodeUtil.wraprMethod(psiMethod, Conf.new_instance_fanction_name, res.append(CodeUtil.RETURN_RES).toString())
                 : CodeUtil.wraprMethod(psiMethod, res.append(CodeUtil.RETURN_RES).toString());
         PsiMethod newInstanceMethod = elementFactory.createMethodFromText(newInstanceMethodString, thisPsiClass);
-        List<PsiElement> resPsi = new ArrayList<>();
-        resPsi.add(newInstanceMethod);
-        return resPsi;
+        return newInstanceMethod;
     }
 
 }

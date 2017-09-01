@@ -2,6 +2,7 @@ package me.fmeng.fastcode.utils;
 
 import com.google.common.collect.Maps;
 import com.intellij.psi.*;
+import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 import me.fmeng.fastcode.action.LanguageSelection;
 import org.apache.commons.lang.IllegalClassException;
 import org.apache.commons.lang.StringUtils;
@@ -35,21 +36,22 @@ public final class CodeUtil {
     }
 
     public static String wraprMethod(PsiMethod psiMethod, String methodName, String innerCode) {
-        String params = getParamStr(psiMethod);
-        String returnType = getReturnType(psiMethod);
         StringBuilder res = new StringBuilder();
-        res.append("public static ").append(returnType).append("  ");
-        if (methodName == null) {
-            res.append(psiMethod.getName());
-        } else {
-            res.append(methodName);
+        String psiMethodText = psiMethod.getText();
+        String bodyText = psiMethod.getBody().getText();
+        String nameText = psiMethod.getName();
+        // 1. 去除body
+        psiMethodText = psiMethodText.replace(bodyText, "");
+        // 2. 替换方法名
+        if (CUtil.str.isNotBlank(methodName)){
+            psiMethodText = psiMethodText.replace(nameText, methodName);
         }
-        res.append("(").append(params).append("){")
-                .append(innerCode).append("}\n");
+        res.append(psiMethodText).append("{\n")
+                .append(innerCode).append("}").append("\n");
         return res.toString();
     }
 
-    public static String fastCodeWraprMethod(PsiMethod psiMethod, String innerCode) {
+    public static String checkParamWraprMethod(PsiMethod psiMethod, String innerCode) {
         String params = getParamStr(psiMethod);
         String returnType = getReturnType(psiMethod);
         StringBuilder res = new StringBuilder();
@@ -408,6 +410,11 @@ public final class CodeUtil {
 
     private static String checkParamCodeJava8(PsiClass psiClass, String... params) {
         return doCheckParamCode(getClassType(psiClass), LanguageSelection.LanguageEnum.JDK8, params);
+    }
+
+    private static double filedLikeWeight(String dst, String src){
+        NormalizedLevenshtein l = new NormalizedLevenshtein();
+        return (1-l.distance(dst, src));
     }
 
     public static void main(String[] args) {

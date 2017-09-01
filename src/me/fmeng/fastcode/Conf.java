@@ -13,6 +13,8 @@ public final class Conf {
     public static final boolean force_name = Boolean.TRUE;
     public static final boolean enable_auto_import = Boolean.TRUE;
     public static final String auto_check_import_class = "me.fmeng.pakage, qunarp";
+    public static final double str_like_weight=0.5D;
+    public static final boolean enable_set_check=Boolean.TRUE;
 
     public static final String new_instance_fanction_name = "newInstance";
     public static final String copy_props_function_name = "copyProps";
